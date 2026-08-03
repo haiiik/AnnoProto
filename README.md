@@ -31,7 +31,7 @@
 <section data-page="login" data-page-title="登录页">
   <section data-annotate-section="表单区">
     <input data-annotate="用户名" data-annotate-type="input"
-           data-annotate-detail="文本 | 长度2-10位，仅中文/英文 | 必填 | 默认值：空">
+           data-annotate-detail="类型：文本 | 规则/交互逻辑：长度2-10位，仅中文/英文 | 必填：必填 | 默认值：空">
     <button data-annotate="提交按钮" data-annotate-type="action"
             data-annotate-detail="点击提交表单,成功跳转首页">登录</button>
   </section>
