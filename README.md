@@ -20,7 +20,7 @@
 |------|------|--------|------|
 | `data-annotate` | 是 | 可交互元素 | 标注主标题，≤12 字 |
 | `data-annotate-type` | 否 | 可交互元素 | 类型枚举：action/input/link/navigation/feedback/data |
-| `data-annotate-detail` | 否 | 可交互元素 | 标注详情，≤100 字；表单字段/数据列用结构化格式 |
+| `data-annotate-detail` | 否 | 可交互元素 | 标注详情，≤300 字；表单字段/数据列用结构化格式 |
 | `data-annotate-section` | 否 | 区块容器 | 区块名，决定抽屉分组标题；`"全局"` 排最后 |
 | `data-page` | 否 | 页面容器 | 页面 id，多页面切换用 |
 | `data-page-title` | 否 | 页面容器 | 页面显示名，抽屉标题栏展示 |
