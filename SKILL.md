@@ -1,9 +1,9 @@
 ---
-name: 生成可编辑标注的原型
+name: 编注成型
 description: This skill should be used when users want to create an interactive HTML prototype with editable annotations displayed in a right-side drawer. It generates a self-contained HTML page where every clickable component is automatically tagged with a sequence dot on the element and listed in a right-side drawer grouped by page section. Annotation text can be edited inline by double-clicking, and the final annotated prototype can be exported as a single HTML file. Trigger it for requests like "带标注的HTML原型", "可编辑标注原型", "annotated wireframe", "带说明的页面原型", "标注交互稿".
 ---
 
-# 生成可编辑标注的原型
+# 编注成型（AnnoProto）
 
 创建带标注且标注文本可编辑的 HTML 原型。输出的 HTML 是一个**自包含单文件**：内嵌标注引擎 v2（右侧抽屉式），每个可交互元素在自身右上角显示一个序号圆点，标注内容统一在页面右侧的抽屉浮窗内按页面区块分组展示，双击抽屉内卡片文本即可就地编辑，点击保存按钮可一键保存（回写标注并下载）单文件 HTML。
 
