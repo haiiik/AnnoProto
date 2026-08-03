@@ -4,7 +4,12 @@
 
 ---
 
-## 2026-08-03
+## [1.1] - 2026-08-03
+
+### 本次发布（GitHub Releases 1.1）
+- 项目重命名：annotated-prototype-builder → annotated-prototype-builder-skill。
+- README 新增"效果示例"链接（workbuddy.link）与"版本更新记录"章节；使用方法改为通用 skill 描述（不特指某一平台）。
+- 仓库新增示例文件 `examples/order-management-prototype.html`（GitHub Pages 已启用）。
 
 ### 结构化格式调整
 - 必填字段取值改为 `必填：是` / `必填：否`（是=必填，否=选填；原为"必填：必填/选填"）。
