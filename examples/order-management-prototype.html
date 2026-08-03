@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>订单管理列表原型</title>
+<style>
+/* ===== 原型视觉样式（线框风） ===== */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: #F3F4F6;
+  color: #1F2937;
+  font-size: 14px;
+  min-height: 100vh;
+}
+a { color: inherit; text-decoration: none; }
+
+/* 顶部全局导航 */
+.topnav {
+  position: sticky; top: 0; z-index: 50;
+  height: 56px; background: #1F2937; color: #fff;
+  display: flex; align-items: center; padding: 0 24px; gap: 28px;
+}
+.topnav .brand { font-size: 16px; font-weight: 600; letter-spacing: .5px; }
+.topnav .nav-items { display: flex; gap: 6px; }
+.topnav .nav-item {
+  color: #D1D5DB; background: transparent; border: none;
+  padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 14px;
+}
+.topnav .nav-item:hover { background: rgba(255,255,255,.08); color: #fff; }
+.topnav .nav-item.active { background: #2563EB; color: #fff; }
+.topnav .nav-right { margin-left: auto; }
+
+/* 页面容器 */
+.page { padding: 20px 24px 60px; max-width: 1280px; margin: 0 auto; }
+.page[hidden] { display: none; }
+
+/* 卡片 */
+.card {
+  background: #fff; border: 1px solid #E5E7EB; border-radius: 10px;
+  padding: 18px 20px; margin-bottom: 16px;
+  box-shadow: 0 1px 2px rgba(0,0,0,.04);
+}
+.card-title {
+  font-size: 14px; font-weight: 600; color: #374151; margin: 0 0 14px;
+  padding-bottom: 10px; border-bottom: 1px solid #F3F4F6;
+  display: flex; align-items: center; gap: 8px;
+}
+.card-title .tag { font-size: 12px; font-weight: 400; color: #9CA3AF; }
+
+/* KPI 概览 */
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.kpi {
+  background: #fff; border: 1px solid #E5E7EB; border-radius: 10px;
+  padding: 16px 18px; box-shadow: 0 1px 2px rgba(0,0,0,.04);
+}
+.kpi .k-label { font-size: 12px; color: #6B7280; }
+.kpi .k-val { font-size: 26px; font-weight: 700; margin-top: 6px; font-variant-numeric: tabular-nums; }
+.kpi .k-sub { font-size: 12px; color: #9CA3AF; margin-top: 4px; }
+.kpi.accent .k-val { color: #2563EB; }
+
+/* 状态快捷筛选 */
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.tab {
+  padding: 7px 16px; border: 1px solid #D1D5DB; background: #fff; border-radius: 20px;
+  cursor: pointer; font-size: 13px; color: #374151;
+}
+.tab:hover { background: #F9FAFB; }
+.tab.active { background: #2563EB; border-color: #2563EB; color: #fff; }
+.tab .cnt { display: inline-block; margin-left: 6px; font-size: 11px; opacity: .8; }
+
+/* 筛选区布局 */
+.filter-grid { display: flex; flex-wrap: wrap; gap: 12px 16px; align-items: flex-end; }
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field > label { font-size: 12px; color: #6B7280; }
+.field input, .field select {
+  height: 36px; border: 1px solid #D1D5DB; border-radius: 6px;
+  padding: 0 10px; font-size: 14px; background: #fff; color: #1F2937; min-width: 150px;
+}
+.field.sm input, .field.sm select { min-width: 110px; }
+.filter-actions { display: flex; gap: 10px; margin-left: auto; }
+
+/* 按钮 */
+.btn { height: 36px; padding: 0 16px; border-radius: 6px; border: 1px solid #D1D5DB; background: #fff; color: #374151; cursor: pointer; font-size: 14px; }
+.btn:hover { background: #F9FAFB; }
+.btn-primary { background: #2563EB; border-color: #2563EB; color: #fff; }
+.btn-primary:hover { background: #1D4ED8; }
+.btn-sm { height: 32px; padding: 0 12px; font-size: 13px; }
+.btn-danger-link { color: #DC2626; }
+.btn-danger-link:hover { background: #FEF2F2; }
+
+/* 批量操作条 */
+.batch-bar { display: flex; align-items: center; gap: 12px; }
+.batch-bar .sel-info { font-size: 13px; color: #6B7280; }
+.batch-bar .spacer { flex: 1; }
+
+/* 表格 */
+table.grid { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.grid th, table.grid td { border: 1px solid #E5E7EB; padding: 10px 12px; text-align: left; }
+table.grid thead th { background: #F9FAFB; color: #374151; font-weight: 600; white-space: nowrap; }
+table.grid tbody tr:hover { background: #FAFAFA; }
+.muted { color: #9CA3AF; }
+.right { text-align: right; }
+.center { text-align: center; }
+.status-badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 12px; }
+.s-draft { background: #F3F4F6; color: #6B7280; }
+.s-wait { background: #FEF3C7; color: #B45309; }
+.s-audit { background: #DBEAFE; color: #1D4ED8; }
+.s-ship { background: #DCFCE7; color: #15803D; }
+.s-done { background: #E0E7FF; color: #4338CA; }
+.s-cancel { background: #FEE2E2; color: #B91C1C; }
+.row-actions a { margin-right: 12px; color: #2563EB; }
+.row-actions a:hover { text-decoration: underline; }
+
+/* 分页 */
+.pager { display: flex; gap: 6px; align-items: center; margin-top: 14px; flex-wrap: wrap; }
+.pager button { height: 32px; min-width: 32px; padding: 0 8px; border: 1px solid #D1D5DB; background: #fff; border-radius: 6px; cursor: pointer; }
+.pager button.active { background: #2563EB; color: #fff; border-color: #2563EB; }
+.pager .info { margin-left: auto; color: #6B7280; font-size: 12px; }
+.pager .psize { display: flex; align-items: center; gap: 6px; color: #6B7280; font-size: 12px; }
+.pager .psize select { height: 30px; border: 1px solid #D1D5DB; border-radius: 6px; padding: 0 6px; }
+</style>
+<style>
+/* ===== 标注引擎样式 v2.0.0（注入） ===== */
+.__anno-layer { position: absolute; top: 0; left: 0; width: 0; height: 0; pointer-events: none; z-index: 9998; }
+.__anno-layer * { pointer-events: auto; }
+.__anno-target-dot { position: absolute; display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; color: #fff; font-size: 11px; font-weight: 600; font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.25); border: 2px solid #fff; user-select: none; transition: transform 0.1s ease; }
+.__anno-target-dot:hover { transform: scale(1.15); }
+.__anno-target { transition: outline 0.15s ease; }
+.__anno-drawer { position: fixed; top: 0; right: 0; width: 480px; height: 100vh; background: #FFFFFF; border-left: 1px solid #E5E7EB; box-shadow: -2px 0 8px rgba(0,0,0,0.08); z-index: 10000; display: flex; flex-direction: column; font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; transition: transform 0.25s ease; }
+.__anno-drawer-collapsed { transform: translateX(100%); box-shadow: none; }
+.__anno-drawer-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-bottom: 1px solid #E5E7EB; background: #F9FAFB; flex-shrink: 0; }
+.__anno-drawer-title-wrap { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.__anno-drawer-page { font-size: 13px; font-weight: 500; color: #1F2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.__anno-drawer-count { font-size: 11px; color: #6B7280; margin-top: 2px; }
+.__anno-drawer-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.__anno-btn { padding: 5px 12px; border: 1px solid #D1D5DB; border-radius: 4px; background: #FFFFFF; color: #374151; font-size: 12px; cursor: pointer; transition: background 0.15s, border-color 0.15s; font-family: inherit; line-height: 1.4; }
+.__anno-btn:hover { background: #F3F4F6; }
+.__anno-btn-save { background: #2563EB; border-color: #2563EB; color: #FFFFFF; }
+.__anno-btn-save:hover { background: #1D4ED8; border-color: #1D4ED8; }
+.__anno-btn-saved { background: #16A34A !important; border-color: #16A34A !important; }
+.__anno-drawer-body { flex: 1; overflow-y: auto; padding: 10px; background: #FAFAFA; }
+.__anno-drawer-body::-webkit-scrollbar { width: 6px; }
+.__anno-drawer-body::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 3px; }
+.__anno-drawer-body::-webkit-scrollbar-thumb:hover { background: #9CA3AF; }
+.__anno-section-group { margin-bottom: 14px; }
+.__anno-section-title { font-size: 12px; font-weight: 500; color: #374151; padding: 5px 8px; margin-bottom: 6px; border-left: 3px solid #2563EB; background: #F3F4F6; border-radius: 0 3px 3px 0; }
+.__anno-section-title.__anno-section-other { border-left-color: #9CA3AF; color: #6B7280; }
+.__anno-section-list { display: flex; flex-direction: column; gap: 6px; }
+.__anno-card { position: relative; display: flex; align-items: flex-start; gap: 8px; padding: 8px 10px; background: #FFFFFF; border: 1px solid #E5E7EB; border-left: 3px solid #2563EB; border-radius: 6px; cursor: pointer; transition: box-shadow 0.15s, border-color 0.15s; }
+.__anno-card:hover { box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+.__anno-card-active { box-shadow: 0 0 0 2px #2563EB !important; }
+.__anno-card-dot { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; color: #FFFFFF; font-size: 11px; font-weight: 600; flex-shrink: 0; margin-top: 1px; cursor: default; }
+.__anno-card-text { flex: 1; min-width: 0; }
+.__anno-card-title { font-size: 13px; font-weight: 500; color: #1F2937; line-height: 1.4; word-break: break-word; border-radius: 3px; padding: 1px 2px; }
+.__anno-card-title:focus { outline: 1px dashed #2563EB; background: #FFFFFF; }
+.__anno-card-detail { font-size: 12px; color: #4B5563; margin-top: 3px; line-height: 1.5; word-break: break-word; border-radius: 3px; padding: 1px 2px; }
+.__anno-card-detail:focus { outline: 1px dashed #2563EB; background: #FFFFFF; }
+.__anno-empty { text-align: center; color: #9CA3AF; font-size: 13px; padding: 40px 0; }
+.__anno-text-editing { outline: 1px dashed #2563EB; outline-offset: 1px; cursor: text; }
+.__anno-text-editing:hover { outline-style: solid; }
+.__anno-expand-btn { position: fixed; bottom: 20px; right: 16px; padding: 8px 14px; background: #2563EB; color: #FFFFFF; border: none; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; box-shadow: 0 2px 8px rgba(37,99,235,0.35); z-index: 10000; font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; display: none; align-items: center; }
+.__anno-expand-btn:hover { background: #1D4ED8; }
+@media (max-width: 768px) {
+  .__anno-drawer { width: 88%; max-width: 320px; }
+  .__anno-card-title { font-size: 12px; }
+  .__anno-card-detail { font-size: 11px; }
+  .__anno-drawer-header { padding: 10px 10px; }
+}
+</style>
+</head>
+<body>
+
+<!-- 顶部全局导航 -->
+<nav class="topnav">
+  <span class="brand">订单管理系统</span>
+  <div class="nav-items">
+    <button class="nav-item active" data-annotate="订单列表导航" data-annotate-type="navigation" data-annotate-detail="点击停留在订单列表页（当前页）">订单列表</button>
+  </div>
+</nav>
+
+<!-- ============ 订单列表页（唯一页面） ============ -->
+<section data-page="order-list" data-page-title="订单列表">
+  <div class="page">
+
+    <!-- KPI 概览 -->
+    <section data-annotate-section="概览卡片区" class="kpi-grid">
+      <div class="kpi accent">
+        <div class="k-label">订单总数</div>
+        <div class="k-val" data-annotate="订单总数" data-annotate-type="data" data-annotate-detail="类型：数值｜数据来源：订单中心统计｜说明：当前筛选条件下订单总条数">1,286</div>
+        <div class="k-sub">较上月 +8.2%</div>
+      </div>
+      <div class="kpi">
+        <div class="k-label">待审核</div>
+        <div class="k-val" data-annotate="待审核数" data-annotate-type="data" data-annotate-detail="类型：数值｜数据来源：状态机统计｜说明：状态为待审核的订单数">42</div>
+        <div class="k-sub">需主管处理</div>
+      </div>
+      <div class="kpi">
+        <div class="k-label">已发货</div>
+        <div class="k-val" data-annotate="已发货数" data-annotate-type="data" data-annotate-detail="类型：数值｜数据来源：状态机统计｜说明：状态为已发货的订单数">318</div>
+        <div class="k-sub">在途运输中</div>
+      </div>
+      <div class="kpi">
+        <div class="k-label">本月金额(元)</div>
+        <div class="k-val" data-annotate="本月金额" data-annotate-type="data" data-annotate-detail="类型：金额｜数据来源：明细汇总｜说明：本月下单订单金额合计，含税">9,842,600</div>
+        <div class="k-sub">目标 1200 万</div>
+      </div>
+    </section>
+
+    <!-- 状态快捷筛选 -->
+    <section data-annotate-section="状态筛选区" class="card">
+      <div class="tabs" data-annotate="状态快速筛选" data-annotate-type="navigation" data-annotate-detail="点击某一状态标签，按该状态过滤列表；全部标签展示所有订单">
+        <button class="tab active">全部 <span class="cnt">1286</span></button>
+        <button class="tab">待审核 <span class="cnt">42</span></button>
+        <button class="tab">已审核 <span class="cnt">510</span></button>
+        <button class="tab">已发货 <span class="cnt">318</span></button>
+        <button class="tab">已完成 <span class="cnt">396</span></button>
+        <button class="tab">已取消 <span class="cnt">20</span></button>
+      </div>
+    </section>
+
+    <!-- 筛选操作 -->
+    <section data-annotate-section="筛选操作区" class="card">
+      <div class="filter-grid">
+        <div class="field">
+          <label>搜索</label>
+          <input type="text" data-annotate="订单搜索" data-annotate-type="input" data-annotate-detail="类型：文本｜规则/交互逻辑：输入订单编号或客户名关键字，回车或点查询触发｜必填：否｜默认值：空" placeholder="订单编号 / 客户名称">
+        </div>
+        <div class="field">
+          <label>订单类型</label>
+          <select data-annotate="订单类型筛选" data-annotate-type="input" data-annotate-detail="类型：下拉单选｜规则/交互逻辑：选项 全部/普通/紧急/预售/退货｜必填：否｜默认值：全部">
+            <option>全部</option><option>普通</option><option>紧急</option><option>预售</option><option>退货</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>客户地区</label>
+          <select data-annotate="客户地区筛选" data-annotate-type="input" data-annotate-detail="类型：下拉单选｜规则/交互逻辑：选项 全部/华北/华东/华南/西北/西南/东北｜必填：否｜默认值：全部">
+            <option>全部</option><option>华北</option><option>华东</option><option>华南</option><option>西北</option><option>西南</option><option>东北</option>
+          </select>
+        </div>
+        <div class="field sm">
+          <label>金额下限(元)</label>
+          <input type="number" placeholder="0" data-annotate="金额下限" data-annotate-type="input" data-annotate-detail="类型：数字(金额)｜规则/交互逻辑：筛选金额≥下限；与上限配合｜必填：否｜默认值：空">
+        </div>
+        <div class="field sm">
+          <label>金额上限(元)</label>
+          <input type="number" placeholder="不限" data-annotate="金额上限" data-annotate-type="input" data-annotate-detail="类型：数字(金额)｜规则/交互逻辑：筛选金额≤上限｜必填：否｜默认值：空">
+        </div>
+        <div class="field sm">
+          <label>下单日期起</label>
+          <input type="date" data-annotate="起始日期" data-annotate-type="input" data-annotate-detail="类型：日期｜规则/交互逻辑：筛选下单日期区间起点，不晚于结束日期｜必填：否｜默认值：空">
+        </div>
+        <div class="field sm">
+          <label>下单日期止</label>
+          <input type="date" data-annotate="结束日期" data-annotate-type="input" data-annotate-detail="类型：日期｜规则/交互逻辑：筛选下单日期区间终点｜必填：否｜默认值：空">
+        </div>
+        <div class="filter-actions">
+          <button class="btn" data-annotate="查询" data-annotate-type="action" data-annotate-detail="点击按搜索与筛选条件刷新表格">查询</button>
+          <button class="btn" data-annotate="重置" data-annotate-type="action" data-annotate-detail="点击清空所有筛选条件并刷新表格">重置</button>
+          <button class="btn btn-primary" data-annotate="导出" data-annotate-type="action" data-annotate-detail="点击导出当前筛选结果为 Excel 文件">导出 Excel</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 批量操作 -->
+    <section data-annotate-section="批量操作区" class="card" style="padding:14px 20px">
+      <div class="batch-bar">
+        <input type="checkbox" data-annotate="全选" data-annotate-type="input" data-annotate-detail="类型：复选框｜规则/交互逻辑：勾选后选中本页全部订单行；取消则全不选｜必填：否｜默认值：未勾选">
+        <span class="sel-info" data-annotate="已选数量" data-annotate-type="data" data-annotate-detail="类型：数值｜数据来源：实时统计勾选行数｜说明：展示已勾选订单数">已选 0 项</span>
+        <span class="spacer"></span>
+        <button class="btn btn-sm" data-annotate="批量导出" data-annotate-type="action" data-annotate-detail="点击导出已勾选的订单为 Excel">批量导出</button>
+        <button class="btn btn-sm btn-danger-link" data-annotate="批量删除" data-annotate-type="action" data-annotate-detail="点击删除已勾选订单，需二次确认；已审核后不可删">批量删除</button>
+      </div>
+    </section>
+
+    <!-- 订单表格 -->
+    <section data-annotate-section="订单列表区" class="card">
+      <div class="card-title">订单列表 <span class="tag">共 1,286 条，当前显示前 10 条</span></div>
+      <table class="grid">
+        <thead>
+          <tr>
+            <th style="width:36px" class="center"></th>
+            <th data-annotate="订单编号" data-annotate-type="data" data-annotate-detail="类型：文本｜数据来源：订单中心｜说明：系统生成，规则 ORD-年月日-序号">订单编号</th>
+            <th>客户名称</th>
+            <th data-annotate="客户地区" data-annotate-type="data" data-annotate-detail="类型：文本｜数据来源：客户主数据｜说明：客户所属大区">地区</th>
+            <th>订单类型</th>
+            <th class="center" data-annotate="商品种类" data-annotate-type="data" data-annotate-detail="类型：数值｜数据来源：明细行数｜说明：该订单包含的商品行数">商品种类</th>
+            <th class="right" data-annotate="订单金额" data-annotate-type="data" data-annotate-detail="类型：金额｜数据来源：明细汇总｜说明：含税合计，保留两位小数">金额(元)</th>
+            <th>下单日期</th>
+            <th>交付日期</th>
+            <th data-annotate="负责人" data-annotate-type="data" data-annotate-detail="类型：文本｜数据来源：用户主数据｜说明：订单跟进负责人">负责人</th>
+            <th data-annotate="订单状态" data-annotate-type="data" data-annotate-detail="类型：枚举｜数据来源：订单状态机｜说明：草稿→待审核→已审核→已发货→已完成；可取消。权限：已审核后仅主管可改">状态</th>
+            <th style="width:190px">操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="center"><input type="checkbox"></td>
+            <td>ORD-20260803-001</td>
+            <td>中海石油天津分公司</td>
+            <td>华北</td>
+            <td>普通</td>
+            <td class="center">3</td>
+            <td class="right">128,600.00</td>
+            <td>2026-08-03</td>
+            <td>2026-08-20</td>
+            <td>张工</td>
+            <td><span class="status-badge s-wait">待审核</span></td>
+            <td class="row-actions">
+              <a data-annotate="查看" data-annotate-type="link" data-annotate-detail="点击跳转订单详情只读页">查看</a>
+              <a data-annotate="编辑" data-annotate-type="link" data-annotate-detail="点击跳转订单编辑页，仅草稿/已驳回可编辑">编辑</a>
+              <a data-annotate="复制" data-annotate-type="link" data-annotate-detail="点击以该订单为模板复制出一条新草稿">复制</a>
+              <a class="btn-danger-link" data-annotate="删除" data-annotate-type="link" data-annotate-detail="点击确认后删除订单，已审核后不可删">删除</a>
+            </td>
+          </tr>
+          <tr>
+            <td class="center"><input type="checkbox"></td>
+            <td>ORD-20260802-014</td>
+            <td>湛江船舶服务有限公司</td>
+            <td>华南</td>
+            <td>紧急</td>
+            <td class="center">1</td>
+            <td class="right">54,200.00</td>
+            <td>2026-08-02</td>
+            <td>2026-08-08</td>
+            <td>李工</td>
+            <td><span class="status-badge s-ship">已发货</span></td>
+            <td class="row-actions"><a>查看</a><a>编辑</a><a>复制</a><a class="btn-danger-link">删除</a></td>
+          </tr>
+          <tr>
+            <td class="center"><input type="checkbox"></td>
+            <td>ORD-20260730-009</td>
+            <td>渤海装备机械制造</td>
+            <td>华北</td>
+            <td>普通</td>
+            <td class="center">5</td>
+            <td class="right">312,000.00</td>
+            <td>2026-07-30</td>
+            <td>2026-08-25</td>
+            <td>张工</td>
+            <td><span class="status-badge s-done">已完成</span></td>
+            <td class="row-actions"><a>查看</a><a>编辑</a><a>复制</a><a class="btn-danger-link">删除</a></td>
+          </tr>
+          <tr>
+            <td class="center"><input type="checkbox"></td>
+            <td>ORD-20260729-022</td>
+            <td>上海港务集团</td>
+            <td>华东</td>
+            <td>预售</td>
+            <td class="center">2</td>
+            <td class="right">89,500.00</td>
+            <td>2026-07-29</td>
+            <td>2026-09-10</td>
+            <td>王工</td>
+            <td><span class="status-badge s-audit">已审核</span></td>
+            <td class="row-actions"><a>查看</a><a>编辑</a><a>复制</a><a class="btn-danger-link">删除</a></td>
+          </tr>
+          <tr>
+            <td class="center"><input type="checkbox"></td>
+            <td>ORD-20260728-031</td>
+            <td>广州远洋运输</td>
+            <td>华南</td>
+            <td>普通</td>
+            <td class="center">4</td>
+            <td class="right">176,300.00</td>
+            <td>2026-07-28</td>
+            <td>2026-08-15</td>
+            <td>李工</td>
+            <td><span class="status-badge s-ship">已发货</span></td>
+            <td class="row-actions"><a>查看</a><a>编辑</a><a>复制</a><a class="btn-danger-link">删除</a></td>
+          </tr>
+          <tr>
+            <td class="center"><input type="checkbox"></td>
+            <td>ORD-20260727-007</td>
+            <td>成都机电商贸</td>
+            <td>西南</td>
+            <td>退货</td>
+            <td class="center">1</td>
+            <td class="right">-23,400.00</td>
+            <td>2026-07-27</td>
+            <td>—</td>
+            <td>赵工</td>
+            <td><span class="status-badge s-cancel">已取消</span></td>
+            <td class="row-actions"><a>查看</a><a>编辑</a><a>复制</a><a class="btn-danger-link">删除</a></td>
+          </tr>
+          <tr>
+            <td class="center"><input type="checkbox"></td>
+            <td>ORD-20260726-018</td>
+            <td>西安重工设备</td>
+            <td>西北</td>
+            <td>紧急</td>
+            <td class="center">2</td>
+            <td class="right">64,800.00</td>
+            <td>2026-07-26</td>
+            <td>2026-08-02</td>
+            <td>王工</td>
+            <td><span class="status-badge s-done">已完成</span></td>
+            <td class="row-actions"><a>查看</a><a>编辑</a><a>复制</a><a class="btn-danger-link">删除</a></td>
+          </tr>
+          <tr>
+            <td class="center"><input type="checkbox"></td>
+            <td>ORD-20260725-045</td>
+            <td>大连船舶重工</td>
+            <td>东北</td>
+            <td>普通</td>
+            <td class="center">6</td>
+            <td class="right">421,900.00</td>
+            <td>2026-07-25</td>
+            <td>2026-08-30</td>
+            <td>张工</td>
+            <td><span class="status-badge s-wait">待审核</span></td>
+            <td class="row-actions"><a>查看</a><a>编辑</a><a>复制</a><a class="btn-danger-link">删除</a></td>
+          </tr>
+          <tr>
+            <td class="center"><input type="checkbox"></td>
+            <td>ORD-20260724-012</td>
+            <td>青岛海工装备</td>
+            <td>华东</td>
+            <td>普通</td>
+            <td class="center">3</td>
+            <td class="right">98,200.00</td>
+            <td>2026-07-24</td>
+            <td>2026-08-12</td>
+            <td>李工</td>
+            <td><span class="status-badge s-audit">已审核</span></td>
+            <td class="row-actions"><a>查看</a><a>编辑</a><a>复制</a><a class="btn-danger-link">删除</a></td>
+          </tr>
+          <tr>
+            <td class="center"><input type="checkbox"></td>
+            <td>ORD-20260723-003</td>
+            <td>深圳前海供应链</td>
+            <td>华南</td>
+            <td>预售</td>
+            <td class="center">2</td>
+            <td class="right">156,700.00</td>
+            <td>2026-07-23</td>
+            <td>2026-09-01</td>
+            <td>王工</td>
+            <td><span class="status-badge s-draft">草稿</span></td>
+            <td class="row-actions"><a>查看</a><a>编辑</a><a>复制</a><a class="btn-danger-link">删除</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 分页 -->
+    <section data-annotate-section="分页区">
+      <div class="pager">
+        <button>上一页</button>
+        <button class="active" data-annotate="分页" data-annotate-type="navigation" data-annotate-detail="点击页码或上下页切换，每页默认20条">1</button>
+        <button>2</button>
+        <button>3</button>
+        <button>…</button>
+        <button>65</button>
+        <button>下一页</button>
+        <span class="psize">每页
+          <select data-annotate="每页条数" data-annotate-type="input" data-annotate-detail="类型：下拉单选｜规则/交互逻辑：选项 10/20/50，切换后刷新列表｜必填：否｜默认值：20">
+            <option>10</option><option selected>20</option><option>50</option>
+          </select>
+          条
+        </span>
+        <span class="info">共 1,286 条 · 第 1 / 65 页</span>
+      </div>
+    </section>
+
+  </div>
+</section>
+
+<script>
+/*! 标注引擎 v2.0.0（注入） */
+(function () {
+  'use strict';
+  var TYPE_COLORS = {
+    action:     { border: '#2563EB', bg: '#EFF6FF' },
+    input:      { border: '#7C3AED', bg: '#F5F3FF' },
+    link:       { border: '#0891B2', bg: '#ECFEFF' },
+    navigation: { border: '#EA580C', bg: '#FFF7ED' },
+    feedback:   { border: '#DC2626', bg: '#FEF2F2' },
+    data:       { border: '#16A34A', bg: '#F0FDF4' }
+  };
+  var DEFAULT_TYPE = 'action';
+  var HIGHLIGHT_MS = 1400;
+  var state = { drawerCollapsed: false, dotsVisible: true, currentPageId: null, currentPageTitle: '', cardList: [], targetByKey: {}, keySeq: 0 };
+  function nextKey() { state.keySeq++; return 'k' + state.keySeq; }
+  function typeColor(t) { return TYPE_COLORS[t] || TYPE_COLORS[DEFAULT_TYPE]; }
+  function ensureLayer() {
+    var layer = document.getElementById('__anno_layer__');
+    if (!layer) { layer = document.createElement('div'); layer.id = '__anno_layer__'; layer.className = '__anno-layer'; document.body.appendChild(layer); }
+    return layer;
+  }
+  function ensureDrawer() {
+    var drawer = document.getElementById('__anno_drawer__');
+    if (drawer) return drawer;
+    drawer = document.createElement('div');
+    drawer.id = '__anno_drawer__';
+    drawer.className = '__anno-drawer';
+    drawer.innerHTML =
+      '<div class="__anno-drawer-header">' +
+        '<div class="__anno-drawer-title-wrap">' +
+          '<span class="__anno-drawer-page"></span>' +
+          '<span class="__anno-drawer-count"></span>' +
+        '</div>' +
+        '<div class="__anno-drawer-actions">' +
+          '<button type="button" class="__anno-btn __anno-btn-save" title="保存标注">保存</button>' +
+          '<button type="button" class="__anno-btn __anno-btn-toggle-dots" title="隐藏/显示页面元素上的标注点">隐藏圆点</button>' +
+          '<button type="button" class="__anno-btn __anno-btn-collapse" title="收起抽屉">收起</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="__anno-drawer-body"></div>';
+    document.body.appendChild(drawer);
+    drawer.querySelector('.__anno-btn-save').addEventListener('click', saveAll);
+    drawer.querySelector('.__anno-btn-toggle-dots').addEventListener('click', toggleDots);
+    drawer.querySelector('.__anno-btn-collapse').addEventListener('click', collapseDrawer);
+    return drawer;
+  }
+  function ensureExpandBtn() {
+    var btn = document.getElementById('__anno_expand_btn__');
+    if (btn) return btn;
+    btn = document.createElement('button');
+    btn.id = '__anno_expand_btn__';
+    btn.type = 'button';
+    btn.className = '__anno-expand-btn';
+    btn.textContent = '展开标注';
+    btn.title = '展开标注抽屉';
+    btn.addEventListener('click', expandDrawer);
+    document.body.appendChild(btn);
+    return btn;
+  }
+  function collapseDrawer() { ensureDrawer().classList.add('__anno-drawer-collapsed'); ensureExpandBtn().style.display = 'flex'; state.drawerCollapsed = true; }
+  function expandDrawer() { ensureDrawer().classList.remove('__anno-drawer-collapsed'); ensureExpandBtn().style.display = 'none'; state.drawerCollapsed = false; }
+  function toggleDots() {
+    state.dotsVisible = !state.dotsVisible;
+    var layer = document.getElementById('__anno_layer__');
+    if (layer) layer.style.display = state.dotsVisible ? '' : 'none';
+    var btn = ensureDrawer().querySelector('.__anno-btn-toggle-dots');
+    if (btn) btn.textContent = state.dotsVisible ? '隐藏圆点' : '显示圆点';
+  }
+  function getPages() { return Array.prototype.slice.call(document.querySelectorAll('[data-page]')); }
+  function isVisiblePage(pageEl) {
+    if (!pageEl) return false;
+    if (pageEl.hasAttribute('hidden')) return false;
+    var cs = window.getComputedStyle(pageEl);
+    if (cs.display === 'none' || cs.visibility === 'hidden') return false;
+    return true;
+  }
+  function getCurrentPage() {
+    var pages = getPages();
+    if (!pages.length) return null;
+    for (var i = 0; i < pages.length; i++) { if (isVisiblePage(pages[i])) return pages[i]; }
+    return pages[0];
+  }
+  function setupPageSwitcher() {
+    var pages = getPages();
+    if (pages.length && window.MutationObserver) {
+      var observer = new MutationObserver(function () {
+        var cur = getCurrentPage();
+        var curId = cur ? (cur.getAttribute('data-page') || '__noid__') : null;
+        if (curId !== state.currentPageId) { renderForCurrentPage(); }
+      });
+      observer.observe(document.body, { attributes: true, attributeFilter: ['style', 'class', 'hidden'], subtree: true });
+    }
+    window.__annoGotoPage = function (pageId) {
+      var ps = getPages();
+      if (!ps.length) { renderForCurrentPage(); return; }
+      ps.forEach(function (p) {
+        if (p.getAttribute('data-page') === pageId) { p.style.display = ''; p.removeAttribute('hidden'); }
+        else { p.style.display = 'none'; }
+      });
+      renderForCurrentPage();
+    };
+  }
+  function scanSections(pageEl) {
+    var sections = [], others = [], globalSection = null;
+    if (!pageEl) return { sections: sections, others: others, globalSection: globalSection };
+    var sectionEls = Array.prototype.slice.call(pageEl.querySelectorAll('[data-annotate-section]'));
+    var sectionsByName = {};
+    sectionEls.forEach(function (sc) {
+      var name = (sc.getAttribute('data-annotate-section') || '未命名区块').trim();
+      if (name === '全局') { if (!globalSection) globalSection = { sectionName: '全局', targets: [] }; return; }
+      if (!sectionsByName[name]) { sectionsByName[name] = { sectionName: name, targets: [] }; sections.push(sectionsByName[name]); }
+    });
+    var allTargets = Array.prototype.slice.call(pageEl.querySelectorAll('[data-annotate]'));
+    allTargets.forEach(function (t) {
+      var parent = t.parentElement, foundName = null;
+      while (parent && parent !== document.body) {
+        if (parent.hasAttribute && parent.hasAttribute('data-annotate-section') && pageEl.contains(parent)) {
+          foundName = (parent.getAttribute('data-annotate-section') || '未命名区块').trim(); break;
+        }
+        parent = parent.parentElement;
+      }
+      var entry = { el: t };
+      if (foundName === '全局' && globalSection) globalSection.targets.push(entry);
+      else if (foundName && sectionsByName[foundName]) sectionsByName[foundName].targets.push(entry);
+      else others.push(entry);
+    });
+    return { sections: sections, others: others, globalSection: globalSection };
+  }
+  function renderForCurrentPage() {
+    var page = getCurrentPage();
+    var drawer = ensureDrawer();
+    var body = drawer.querySelector('.__anno-drawer-body');
+    body.innerHTML = '';
+    var oldLayer = document.getElementById('__anno_layer__');
+    if (oldLayer) oldLayer.innerHTML = '';
+    Array.prototype.forEach.call(document.querySelectorAll('.__anno-target'), function (el) { el.classList.remove('__anno-target'); });
+    state.cardList = []; state.targetByKey = {};
+    if (!page) { page = document.body; state.currentPageId = '__single__'; state.currentPageTitle = (document.title || '当前页').substring(0, 24); }
+    else { state.currentPageId = page.getAttribute('data-page') || '__noid__'; state.currentPageTitle = page.getAttribute('data-page-title') || page.getAttribute('data-page') || '当前页'; }
+    var scan = scanSections(page), allCards = [], displayIndex = 0;
+    function buildSection(sec, isOther) {
+      if (!sec.targets.length) return null;
+      var groupEl = document.createElement('div'); groupEl.className = '__anno-section-group';
+      var title = document.createElement('div'); title.className = '__anno-section-title' + (isOther ? ' __anno-section-other' : '');
+      title.textContent = sec.sectionName + ' (' + sec.targets.length + ')'; groupEl.appendChild(title);
+      var list = document.createElement('div'); list.className = '__anno-section-list';
+      sec.targets.forEach(function (entry) {
+        displayIndex++; var card = renderCard(entry.el, displayIndex); list.appendChild(card.cardEl); allCards.push(card);
+      });
+      groupEl.appendChild(list); return groupEl;
+    }
+    scan.sections.forEach(function (sec) { var g = buildSection(sec, false); if (g) body.appendChild(g); });
+    if (scan.others.length) { var og = buildSection({ sectionName: '其他', targets: scan.others }, true); if (og) body.appendChild(og); }
+    if (scan.globalSection && scan.globalSection.targets.length) { var gg = buildSection(scan.globalSection, false); if (gg) body.appendChild(gg); }
+    state.cardList = allCards;
+    drawer.querySelector('.__anno-drawer-page').textContent = state.currentPageTitle;
+    drawer.querySelector('.__anno-drawer-count').textContent = ' · 共 ' + allCards.length + ' 处标注';
+    if (!allCards.length) { var empty = document.createElement('div'); empty.className = '__anno-empty'; empty.textContent = '当前页无可标注元素'; body.appendChild(empty); }
+    repositionAllDots();
+  }
+  function renderCard(target, index) {
+    var type = target.getAttribute('data-annotate-type') || DEFAULT_TYPE;
+    var color = typeColor(type);
+    var title = target.getAttribute('data-annotate') || '';
+    var detail = target.getAttribute('data-annotate-detail') || '';
+    var cardEl = document.createElement('div'); cardEl.className = '__anno-card'; cardEl.setAttribute('data-anno-type', type); cardEl.style.borderLeftColor = color.border;
+    var dot = document.createElement('span'); dot.className = '__anno-card-dot'; dot.style.backgroundColor = color.border; dot.textContent = index; cardEl.appendChild(dot);
+    var textWrap = document.createElement('div'); textWrap.className = '__anno-card-text';
+    var titleNode = document.createElement('div'); titleNode.className = '__anno-card-title'; titleNode.textContent = title; makeEditable(titleNode, 'data-annotate', target); textWrap.appendChild(titleNode);
+    var detailNode = null;
+    if (detail) { detailNode = document.createElement('div'); detailNode.className = '__anno-card-detail'; detailNode.textContent = detail; makeEditable(detailNode, 'data-annotate-detail', target); textWrap.appendChild(detailNode); }
+    cardEl.appendChild(textWrap);
+    var key = nextKey();
+    var entry = { key: key, cardEl: cardEl, target: target, index: index, titleNode: titleNode, detailNode: detailNode, type: type, dot: null };
+    state.targetByKey[key] = entry;
+    entry.dot = renderTargetDot(target, index, color, key);
+    cardEl.addEventListener('click', function (e) {
+      if (e.target.isContentEditable) return;
+      if (e.target.classList.contains('__anno-card-dot')) return;
+      if (e.target.classList.contains('__anno-card-title') || e.target.classList.contains('__anno-card-detail')) return;
+      scrollAndHighlightTarget(target, color.border);
+    });
+    return entry;
+  }
+  function renderTargetDot(target, index, color, key) {
+    target.classList.add('__anno-target');
+    var dot = document.createElement('span'); dot.className = '__anno-target-dot'; dot.style.backgroundColor = color.border; dot.textContent = index;
+    dot.setAttribute('data-anno-key', key); dot.title = '点击在抽屉中定位';
+    ensureLayer().appendChild(dot); positionDot(dot, target);
+    dot.addEventListener('click', function (e) { e.stopPropagation(); e.preventDefault(); highlightCard(key); });
+    return dot;
+  }
+  function positionDot(dot, target) {
+    var rect = target.getBoundingClientRect(); var layerRect = ensureLayer().getBoundingClientRect();
+    dot.style.left = (rect.right - layerRect.left - 18) + 'px';
+    dot.style.top = (rect.top - layerRect.top - 6) + 'px';
+  }
+  function repositionAllDots() {
+    Object.keys(state.targetByKey).forEach(function (key) { var entry = state.targetByKey[key]; if (entry.dot && entry.target) positionDot(entry.dot, entry.target); });
+  }
+  function scrollAndHighlightTarget(target, borderColor) {
+    if (!target) return;
+    try { target.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {}
+    target.style.outline = '2px solid ' + borderColor; target.style.outlineOffset = '2px';
+    setTimeout(function () { target.style.outline = ''; target.style.outlineOffset = ''; }, HIGHLIGHT_MS);
+  }
+  function scrollCardIntoView(card) {
+    var body = ensureDrawer().querySelector('.__anno-drawer-body'); if (!body) return;
+    var cardRect = card.getBoundingClientRect(); var bodyRect = body.getBoundingClientRect();
+    var t = body.scrollTop + (cardRect.top - bodyRect.top) - (bodyRect.height / 2) + (cardRect.height / 2); t = Math.max(0, t);
+    try { body.scrollTo({ top: t, behavior: 'smooth' }); } catch (e) { body.scrollTop = t; }
+  }
+  function highlightCard(key) {
+    var entry = state.targetByKey[key]; if (!entry) return;
+    var card = entry.cardEl; card.classList.add('__anno-card-active');
+    if (state.drawerCollapsed) { expandDrawer(); setTimeout(function () { scrollCardIntoView(card); }, 300); }
+    else { scrollCardIntoView(card); }
+    setTimeout(function () { card.classList.remove('__anno-card-active'); }, HIGHLIGHT_MS);
+  }
+  function makeEditable(node, attrName, targetEl) {
+    node.addEventListener('dblclick', function (e) {
+      e.stopPropagation(); node.contentEditable = 'true'; node.focus();
+      var range = document.createRange(); range.selectNodeContents(node); range.collapse(false);
+      var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+    });
+    node.addEventListener('blur', function () { node.contentEditable = 'false'; node.removeAttribute('style'); targetEl.setAttribute(attrName, node.textContent.trim()); });
+    node.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); node.blur(); }
+      else if (e.key === 'Escape') { e.preventDefault(); node.textContent = targetEl.getAttribute(attrName) || ''; node.blur(); }
+    });
+  }
+  function saveAll() {
+    state.cardList.forEach(function (entry) {
+      if (entry.titleNode) entry.target.setAttribute('data-annotate', entry.titleNode.textContent.trim());
+      if (entry.detailNode) { var v = entry.detailNode.textContent.trim(); if (v) entry.target.setAttribute('data-annotate-detail', v); else entry.target.removeAttribute('data-annotate-detail'); }
+    });
+    var clone = document.documentElement.cloneNode(true);
+    ['#__anno_drawer__', '#__anno_expand_btn__', '#__anno_layer__'].forEach(function (sel) { var el = clone.querySelector(sel); if (el) el.parentNode.removeChild(el); });
+    Array.prototype.forEach.call(clone.querySelectorAll('[data-annotate]'), function (el) { el.classList.remove('__anno-target'); el.removeAttribute('style'); });
+    Array.prototype.forEach.call(clone.querySelectorAll('[contenteditable]'), function (el) { el.removeAttribute('contenteditable'); el.classList.remove('__anno-text-editing'); });
+    var html = '<!DOCTYPE html>\n' + clone.outerHTML;
+    var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    var name = (location.pathname.split('/').pop() || 'prototype').replace(/\.html?$/i, '');
+    a.href = url; a.download = name + '-annotated.html'; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+    var saveBtn = ensureDrawer().querySelector('.__anno-btn-save'); var orig = saveBtn.textContent;
+    saveBtn.textContent = '已保存'; saveBtn.classList.add('__anno-btn-saved');
+    setTimeout(function () { saveBtn.textContent = orig; saveBtn.classList.remove('__anno-btn-saved'); }, 1500);
+  }
+  function setupPageTextEditing() {
+    document.addEventListener('dblclick', function (e) {
+      var el = e.target; if (!el || el.nodeType !== 1) return;
+      if (el.closest('#__anno_drawer__, #__anno_layer__, #__anno_expand_btn__')) return;
+      var tag = el.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || tag === 'OPTION') return;
+      if (!el.textContent || !el.textContent.trim()) return;
+      if (el.isContentEditable) return;
+      el.contentEditable = 'true'; el.classList.add('__anno-text-editing'); el.focus();
+      var range = document.createRange(); range.selectNodeContents(el); range.collapse(false);
+      var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+      e.preventDefault(); e.stopPropagation();
+    }, true);
+    document.addEventListener('focusout', function (e) {
+      var el = e.target;
+      if (el && el.isContentEditable && !el.closest('#__anno_drawer__')) { el.contentEditable = 'false'; el.classList.remove('__anno-text-editing'); }
+    }, true);
+  }
+  function init() {
+    ensureLayer(); ensureDrawer(); ensureExpandBtn().style.display = 'none';
+    setupPageSwitcher(); setupPageTextEditing(); renderForCurrentPage();
+    var timer = null;
+    window.addEventListener('resize', function () { clearTimeout(timer); timer = setTimeout(repositionAllDots, 80); });
+    window.addEventListener('scroll', function () { repositionAllDots(); }, { passive: true });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+</script>
+</body>
+</html>
