@@ -1,6 +1,6 @@
-# Annotated Prototype Builder（生成可编辑标注的原型）Skill
+# Annotated Prototype Builder（生成可编辑标注的原型）
 
-创建带标注且标注文本可编辑的 HTML 原型。输出的 HTML 是一个**自包含单文件**：内嵌标注引擎（右侧抽屉式），每个可交互元素在自身右上角显示一个序号圆点，标注内容统一在页面右侧的抽屉浮窗内按页面区块分组展示。
+创建带标注且标注文本可编辑的 HTML 原型。输出的 HTML 是一个**自包含单文件**：内嵌标注引擎 v2（右侧抽屉式），每个可交互元素在自身右上角显示一个序号圆点，标注内容统一在页面右侧的抽屉浮窗内按页面区块分组展示。
 
 ## 功能特性
 
@@ -31,7 +31,7 @@
 <section data-page="login" data-page-title="登录页">
   <section data-annotate-section="表单区">
     <input data-annotate="用户名" data-annotate-type="input"
-           data-annotate-detail="用户名 | 文本 | 长度2-10位，仅中文/英文 | 是 | 空">
+           data-annotate-detail="用户名 | 文本 | 长度2-10位，仅中文/英文 | 必填 | 空">
     <button data-annotate="提交按钮" data-annotate-type="action"
             data-annotate-detail="点击提交表单,成功跳转首页">登录</button>
   </section>
