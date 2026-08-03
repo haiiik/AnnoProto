@@ -1,0 +1,295 @@
+/* Annotated Prototype Builder - Annotation Engine Styles v2.0.0
+   右侧抽屉式：抽屉浮窗 + 区块分组卡片 + 页面元素序号圆点 + 收起/展开
+*/
+
+/* ---------- 浮层（页面元素序号圆点容器） ---------- */
+.__anno-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  z-index: 9998;
+}
+.__anno-layer * {
+  pointer-events: auto;
+}
+
+/* 页面元素序号圆点 */
+.__anno-target-dot {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  border: 2px solid #fff;
+  user-select: none;
+  transition: transform 0.1s ease;
+}
+.__anno-target-dot:hover {
+  transform: scale(1.15);
+}
+
+/* 被标注元素高亮态 */
+.__anno-target {
+  transition: outline 0.15s ease;
+}
+
+/* ---------- 抽屉 ---------- */
+.__anno-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 320px;
+  height: 100vh;
+  background: #FFFFFF;
+  border-left: 1px solid #E5E7EB;
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.08);
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  transition: transform 0.25s ease;
+}
+.__anno-drawer-collapsed {
+  transform: translateX(100%);
+  box-shadow: none;
+}
+
+/* 抽屉头 */
+.__anno-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-bottom: 1px solid #E5E7EB;
+  background: #F9FAFB;
+  flex-shrink: 0;
+}
+.__anno-drawer-title-wrap {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+.__anno-drawer-page {
+  font-size: 13px;
+  font-weight: 500;
+  color: #1F2937;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.__anno-drawer-count {
+  font-size: 11px;
+  color: #6B7280;
+  margin-top: 2px;
+}
+.__anno-drawer-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* 按钮 */
+.__anno-btn {
+  padding: 5px 12px;
+  border: 1px solid #D1D5DB;
+  border-radius: 4px;
+  background: #FFFFFF;
+  color: #374151;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  font-family: inherit;
+  line-height: 1.4;
+}
+.__anno-btn:hover {
+  background: #F3F4F6;
+}
+.__anno-btn-save {
+  background: #2563EB;
+  border-color: #2563EB;
+  color: #FFFFFF;
+}
+.__anno-btn-save:hover {
+  background: #1D4ED8;
+  border-color: #1D4ED8;
+}
+.__anno-btn-saved {
+  background: #16A34A !important;
+  border-color: #16A34A !important;
+}
+
+/* 抽屉 body */
+.__anno-drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+  background: #FAFAFA;
+}
+.__anno-drawer-body::-webkit-scrollbar {
+  width: 6px;
+}
+.__anno-drawer-body::-webkit-scrollbar-thumb {
+  background: #D1D5DB;
+  border-radius: 3px;
+}
+.__anno-drawer-body::-webkit-scrollbar-thumb:hover {
+  background: #9CA3AF;
+}
+
+/* ---------- 区块分组 ---------- */
+.__anno-section-group {
+  margin-bottom: 14px;
+}
+.__anno-section-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: #374151;
+  padding: 5px 8px;
+  margin-bottom: 6px;
+  border-left: 3px solid #2563EB;
+  background: #F3F4F6;
+  border-radius: 0 3px 3px 0;
+}
+.__anno-section-title.__anno-section-other {
+  border-left-color: #9CA3AF;
+  color: #6B7280;
+}
+.__anno-section-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* ---------- 卡片 ---------- */
+.__anno-card {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 10px;
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-left: 3px solid #2563EB;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+.__anno-card:hover {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+.__anno-card-active {
+  box-shadow: 0 0 0 2px #2563EB !important;
+}
+.__anno-card-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  color: #FFFFFF;
+  font-size: 11px;
+  font-weight: 600;
+  flex-shrink: 0;
+  margin-top: 1px;
+  cursor: default;
+}
+.__anno-card-text {
+  flex: 1;
+  min-width: 0;
+}
+.__anno-card-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: #1F2937;
+  line-height: 1.4;
+  word-break: break-word;
+  border-radius: 3px;
+  padding: 1px 2px;
+}
+.__anno-card-title:focus {
+  outline: 1px dashed #2563EB;
+  background: #FFFFFF;
+}
+.__anno-card-detail {
+  font-size: 12px;
+  color: #4B5563;
+  margin-top: 3px;
+  line-height: 1.5;
+  word-break: break-word;
+  border-radius: 3px;
+  padding: 1px 2px;
+}
+.__anno-card-detail:focus {
+  outline: 1px dashed #2563EB;
+  background: #FFFFFF;
+}
+
+.__anno-empty {
+  text-align: center;
+  color: #9CA3AF;
+  font-size: 13px;
+  padding: 40px 0;
+}
+
+/* ---------- 页面文字编辑态（全部文字可修改） ---------- */
+.__anno-text-editing {
+  outline: 1px dashed #2563EB;
+  outline-offset: 1px;
+  cursor: text;
+}
+.__anno-text-editing:hover {
+  outline-style: solid;
+}
+
+/* ---------- 展开按钮（收起后显示） ---------- */
+.__anno-expand-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 16px;
+  padding: 8px 14px;
+  background: #2563EB;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
+  z-index: 10000;
+  font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  display: none;
+  align-items: center;
+}
+.__anno-expand-btn:hover {
+  background: #1D4ED8;
+}
+
+/* ---------- 移动端适配 ---------- */
+@media (max-width: 768px) {
+  .__anno-drawer {
+    width: 88%;
+    max-width: 320px;
+  }
+  .__anno-card-title {
+    font-size: 12px;
+  }
+  .__anno-card-detail {
+    font-size: 11px;
+  }
+  .__anno-drawer-header {
+    padding: 10px 10px;
+  }
+}
