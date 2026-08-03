@@ -20,7 +20,7 @@ from pathlib import Path
 
 ALLOWED_TYPES = {"action", "input", "link", "navigation", "feedback", "data", ""}
 TITLE_MAX = 12
-DETAIL_MAX = 100
+DETAIL_MAX = 300
 SECTION_MAX = 20
 PAGE_ID_MAX = 40
 
