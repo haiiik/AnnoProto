@@ -148,6 +148,38 @@
   background: #9CA3AF;
 }
 
+/* 抽屉底部按钮栏 */
+.__anno-drawer-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px 12px;
+  border-top: 1px solid #E5E7EB;
+  background: #FFFFFF;
+  flex-shrink: 0;
+}
+.__anno-btn-add {
+  background: #0EA5E9;
+  border-color: #0EA5E9;
+  color: #FFFFFF;
+}
+.__anno-btn-add:hover {
+  background: #0284C7;
+  border-color: #0284C7;
+}
+.__anno-btn-active {
+  background: #DC2626 !important;
+  border-color: #DC2626 !important;
+  color: #FFFFFF !important;
+}
+
+/* 拾取模式 hover 高亮 */
+.__anno-pick-hover {
+  outline: 2px dashed #2563EB !important;
+  outline-offset: 2px !important;
+  cursor: crosshair;
+}
+
 /* ---------- 区块分组 ---------- */
 .__anno-section-group {
   margin-bottom: 14px;
@@ -188,6 +220,32 @@
 }
 .__anno-card:hover {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+.__anno-card-del {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 18px;
+  height: 18px;
+  line-height: 16px;
+  text-align: center;
+  border: none;
+  border-radius: 50%;
+  background: #F3F4F6;
+  color: #6B7280;
+  font-size: 13px;
+  cursor: pointer;
+  display: none;
+  z-index: 2;
+  padding: 0;
+  font-family: inherit;
+}
+.__anno-card:hover .__anno-card-del {
+  display: block;
+}
+.__anno-card-del:hover {
+  background: #DC2626;
+  color: #FFFFFF;
 }
 .__anno-card-active {
   box-shadow: 0 0 0 2px #2563EB !important;
@@ -275,6 +333,65 @@
 }
 .__anno-expand-btn:hover {
   background: #1D4ED8;
+}
+
+/* ---------- 手动添加标注：模态表单 ---------- */
+.__anno-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 10001;
+  font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+.__anno-modal-box {
+  width: 380px;
+  max-width: 92%;
+  background: #FFFFFF;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  box-sizing: border-box;
+}
+.__anno-modal-title-bar {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1F2937;
+  margin-bottom: 12px;
+}
+.__anno-modal-field {
+  display: block;
+  font-size: 12px;
+  color: #374151;
+  margin-bottom: 10px;
+}
+.__anno-modal-field input,
+.__anno-modal-field select,
+.__anno-modal-field textarea {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  padding: 6px 8px;
+  border: 1px solid #D1D5DB;
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: inherit;
+  box-sizing: border-box;
+  color: #1F2937;
+}
+.__anno-modal-field textarea {
+  resize: vertical;
+}
+.__anno-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
 }
 
 /* ---------- 移动端适配 ---------- */
