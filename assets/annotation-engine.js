@@ -31,11 +31,13 @@
   var state = {
     drawerCollapsed: false,
     dotsVisible: true,
+    picking: false,
     currentPageId: null,
     currentPageTitle: '',
     cardList: [],
     targetByKey: {},
-    keySeq: 0
+    keySeq: 0,
+    _editingOldText: null
   };
 
   function nextKey() { state.keySeq++; return 'k' + state.keySeq; }
@@ -65,14 +67,16 @@
           '<span class="__anno-drawer-page"></span>' +
           '<span class="__anno-drawer-count"></span>' +
         '</div>' +
-        '<div class="__anno-drawer-actions">' +
-          '<button type="button" class="__anno-btn __anno-btn-save" title="保存标注">保存</button>' +
-          '<button type="button" class="__anno-btn __anno-btn-toggle-dots" title="隐藏/显示页面元素上的标注点">隐藏圆点</button>' +
-          '<button type="button" class="__anno-btn __anno-btn-collapse" title="收起抽屉">收起</button>' +
-        '</div>' +
       '</div>' +
-      '<div class="__anno-drawer-body"></div>';
+      '<div class="__anno-drawer-body"></div>' +
+      '<div class="__anno-drawer-footer">' +
+        '<button type="button" class="__anno-btn __anno-btn-add" title="手动添加标注">添加标注</button>' +
+        '<button type="button" class="__anno-btn __anno-btn-save" title="保存标注">保存</button>' +
+        '<button type="button" class="__anno-btn __anno-btn-toggle-dots" title="隐藏/显示页面元素上的标注点">隐藏圆点</button>' +
+        '<button type="button" class="__anno-btn __anno-btn-collapse" title="收起抽屉">收起</button>' +
+      '</div>';
     document.body.appendChild(drawer);
+    drawer.querySelector('.__anno-btn-add').addEventListener('click', startPicking);
     drawer.querySelector('.__anno-btn-save').addEventListener('click', saveAll);
     drawer.querySelector('.__anno-btn-toggle-dots').addEventListener('click', toggleDots);
     drawer.querySelector('.__anno-btn-collapse').addEventListener('click', collapseDrawer);
@@ -113,6 +117,143 @@
     if (layer) layer.style.display = state.dotsVisible ? '' : 'none';
     var btn = ensureDrawer().querySelector('.__anno-btn-toggle-dots');
     if (btn) btn.textContent = state.dotsVisible ? '隐藏圆点' : '显示圆点';
+  }
+
+  /* ---------- 手动添加标注（拾取模式） ---------- */
+  var pickTarget = null;
+
+  function startPicking() {
+    state.picking = true;
+    var btn = ensureDrawer().querySelector('.__anno-btn-add');
+    if (btn) { btn.classList.add('__anno-btn-active'); btn.textContent = '点击页面元素'; }
+    document.addEventListener('mouseover', pickHover, true);
+    document.addEventListener('mouseout', pickUnhover, true);
+    document.addEventListener('click', pickClick, true);
+  }
+
+  function stopPicking() {
+    state.picking = false;
+    var btn = ensureDrawer().querySelector('.__anno-btn-add');
+    if (btn) { btn.classList.remove('__anno-btn-active'); btn.textContent = '添加标注'; }
+    document.removeEventListener('mouseover', pickHover, true);
+    document.removeEventListener('mouseout', pickUnhover, true);
+    document.removeEventListener('click', pickClick, true);
+    Array.prototype.forEach.call(document.querySelectorAll('.__anno-pick-hover'), function (el) {
+      el.classList.remove('__anno-pick-hover');
+    });
+  }
+
+  function pickHover(e) {
+    if (!state.picking) return;
+    var el = e.target;
+    if (!el || el.nodeType !== 1) return;
+    if (el.closest('#__anno_drawer__, #__anno_layer__, #__anno_expand_btn__, #__anno_modal__')) return;
+    if (el.classList.contains('__anno-pick-hover')) return;
+    Array.prototype.forEach.call(document.querySelectorAll('.__anno-pick-hover'), function (x) {
+      x.classList.remove('__anno-pick-hover');
+    });
+    el.classList.add('__anno-pick-hover');
+  }
+
+  function pickUnhover(e) {
+    var el = e.target;
+    if (el && el.classList) el.classList.remove('__anno-pick-hover');
+  }
+
+  function pickClick(e) {
+    if (!state.picking) return;
+    var el = e.target;
+    if (!el || el.nodeType !== 1) return;
+    if (el.closest('#__anno_drawer__, #__anno_layer__, #__anno_expand_btn__, #__anno_modal__')) return;
+    e.preventDefault();
+    e.stopPropagation();
+    stopPicking();
+    openAnnoForm(el);
+  }
+
+  /* ---------- 手动添加标注（模态表单） ---------- */
+  function ensureAnnoModal() {
+    var modal = document.getElementById('__anno_modal__');
+    if (modal) return modal;
+    modal = document.createElement('div');
+    modal.id = '__anno_modal__';
+    modal.className = '__anno-modal';
+    modal.innerHTML =
+      '<div class="__anno-modal-box">' +
+        '<div class="__anno-modal-title-bar">添加标注</div>' +
+        '<label class="__anno-modal-field">主标题 <input type="text" class="__anno-modal-title" maxlength="12" placeholder="≤12字"></label>' +
+        '<label class="__anno-modal-field">类型 <select class="__anno-modal-type">' +
+          '<option value="">自动推断</option>' +
+          '<option value="action">action 按钮/操作</option>' +
+          '<option value="input">input 输入/选择</option>' +
+          '<option value="link">link 链接</option>' +
+          '<option value="navigation">navigation 导航</option>' +
+          '<option value="feedback">feedback 提示/反馈</option>' +
+          '<option value="data">data 数据展示</option>' +
+        '</select></label>' +
+        '<label class="__anno-modal-field">详情 <textarea class="__anno-modal-detail" rows="3" placeholder="≤300字，可用结构化格式"></textarea></label>' +
+        '<label class="__anno-modal-field">区块（可选） <input type="text" class="__anno-modal-section" placeholder="归入某区块，留空自动归组"></label>' +
+        '<div class="__anno-modal-actions">' +
+          '<button type="button" class="__anno-btn __anno-modal-cancel">取消</button>' +
+          '<button type="button" class="__anno-btn __anno-btn-save-anno">保存</button>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(modal);
+    modal.querySelector('.__anno-modal-cancel').addEventListener('click', closeAnnoModal);
+    modal.querySelector('.__anno-btn-save-anno').addEventListener('click', function () {
+      var input = modal.querySelector('.__anno-modal-title');
+      var typeSel = modal.querySelector('.__anno-modal-type');
+      var detailTa = modal.querySelector('.__anno-modal-detail');
+      var sectionInput = modal.querySelector('.__anno-modal-section');
+      var title = input.value.trim();
+      if (!title) { input.focus(); return; }
+      if (!pickTarget) { closeAnnoModal(); return; }
+      pickTarget.setAttribute('data-annotate', title.substring(0, 12));
+      var type = typeSel.value;
+      if (type) pickTarget.setAttribute('data-annotate-type', type);
+      var detail = detailTa.value.trim();
+      if (detail) pickTarget.setAttribute('data-annotate-detail', detail);
+      else pickTarget.removeAttribute('data-annotate-detail');
+      var secName = sectionInput.value.trim();
+      if (secName) ensureSectionFor(pickTarget, secName);
+      closeAnnoModal();
+      renderForCurrentPage();
+    });
+    return modal;
+  }
+
+  function openAnnoForm(el) {
+    var modal = ensureAnnoModal();
+    modal.style.display = 'flex';
+    modal.querySelector('.__anno-modal-title').value = (el.textContent || '').trim().substring(0, 12);
+    modal.querySelector('.__anno-modal-type').value = '';
+    modal.querySelector('.__anno-modal-detail').value = '';
+    modal.querySelector('.__anno-modal-section').value = '';
+    pickTarget = el;
+    setTimeout(function () { modal.querySelector('.__anno-modal-title').focus(); }, 0);
+  }
+
+  function closeAnnoModal() {
+    var modal = document.getElementById('__anno_modal__');
+    if (modal) modal.style.display = 'none';
+    pickTarget = null;
+  }
+
+  function ensureSectionFor(el, secName) {
+    var p = el.parentElement;
+    while (p && p !== document.body) {
+      if (p.hasAttribute && p.hasAttribute('data-annotate-section')) {
+        var n = (p.getAttribute('data-annotate-section') || '').trim();
+        if (n === secName) return;
+        break;
+      }
+      p = p.parentElement;
+    }
+    var wrap = document.createElement('div');
+    wrap.setAttribute('data-annotate-section', secName);
+    wrap.style.display = 'contents';
+    el.parentNode.insertBefore(wrap, el);
+    wrap.appendChild(el);
   }
 
   /* ---------- 页面识别 ---------- */
@@ -328,6 +469,22 @@
     }
     cardEl.appendChild(textWrap);
 
+    var delBtn = document.createElement('button');
+    delBtn.type = 'button';
+    delBtn.className = '__anno-card-del';
+    delBtn.textContent = '×';
+    delBtn.title = '删除此标注';
+    delBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (window.confirm('确定删除该标注？删除后元素上的标注属性将被移除。')) {
+        target.removeAttribute('data-annotate');
+        target.removeAttribute('data-annotate-type');
+        target.removeAttribute('data-annotate-detail');
+        renderForCurrentPage();
+      }
+    });
+    cardEl.appendChild(delBtn);
+
     var key = nextKey();
     var entry = {
       key: key, cardEl: cardEl, target: target, index: index,
@@ -469,7 +626,7 @@
     });
 
     var clone = document.documentElement.cloneNode(true);
-    var toRemove = ['#__anno_drawer__', '#__anno_expand_btn__', '#__anno_layer__'];
+    var toRemove = ['#__anno_drawer__', '#__anno_expand_btn__', '#__anno_layer__', '#__anno_modal__'];
     toRemove.forEach(function (sel) {
       var el = clone.querySelector(sel);
       if (el) el.parentNode.removeChild(el);
@@ -515,6 +672,7 @@
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || tag === 'OPTION') return;
       if (!el.textContent || !el.textContent.trim()) return;
       if (el.isContentEditable) return;
+      state._editingOldText = el.textContent;
       el.contentEditable = 'true';
       el.classList.add('__anno-text-editing');
       el.focus();
@@ -531,8 +689,23 @@
     document.addEventListener('focusout', function (e) {
       var el = e.target;
       if (el && el.isContentEditable && !el.closest('#__anno_drawer__')) {
+        var newText = el.textContent.trim();
+        var oldText = state._editingOldText || '';
         el.contentEditable = 'false';
         el.classList.remove('__anno-text-editing');
+        /* 同步标注：主标题与元素原文字相同时跟随新文字（同名才跟随，业务命名不覆盖） */
+        if (newText && oldText && newText !== oldText) {
+          var anno = el.getAttribute('data-annotate');
+          if (anno && anno.trim() === oldText.trim()) {
+            el.setAttribute('data-annotate', newText.substring(0, 12));
+            state.cardList.forEach(function (entry) {
+              if (entry.target === el && entry.titleNode) {
+                entry.titleNode.textContent = newText.substring(0, 12);
+              }
+            });
+          }
+        }
+        state._editingOldText = null;
       }
     }, true);
   }
